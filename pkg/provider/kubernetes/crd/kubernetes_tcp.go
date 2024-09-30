@@ -23,7 +23,7 @@ func (p *Provider) loadIngressRouteTCPConfiguration(ctx context.Context, client 
 		Services:    map[string]*dynamic.TCPService{},
 	}
 
-	for _, ingressRouteTCP := range client.GetIngressRouteTCPs() {
+	for _, ingressRouteTCP := range client.GetIngressRouteTCPs(p.DisableAPIResources) {
 		logger := log.FromContext(log.With(ctx, log.Str("ingress", ingressRouteTCP.Name), log.Str("namespace", ingressRouteTCP.Namespace)))
 
 		if !shouldProcessIngress(p.IngressClass, ingressRouteTCP.Annotations[annotationKubernetesIngressClass]) {

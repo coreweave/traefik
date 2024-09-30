@@ -57,6 +57,7 @@ type Provider struct {
 	IngressClass              string          `description:"Value of kubernetes.io/ingress.class annotation to watch for." json:"ingressClass,omitempty" toml:"ingressClass,omitempty" yaml:"ingressClass,omitempty" export:"true"`
 	ThrottleDuration          ptypes.Duration `description:"Ingress refresh throttle duration" json:"throttleDuration,omitempty" toml:"throttleDuration,omitempty" yaml:"throttleDuration,omitempty" export:"true"`
 	AllowEmptyServices        bool            `description:"Allow the creation of services without endpoints." json:"allowEmptyServices,omitempty" toml:"allowEmptyServices,omitempty" yaml:"allowEmptyServices,omitempty" export:"true"`
+	DisableAPIResources       []string        `description:"Disable select Traefik Custom Resources." json:"disableAPIResources,omitempty" toml:"disableAPIResources,omitempty" yaml:"disableAPIResources,omitempty" export:"true"`
 
 	lastConfiguration safe.Safe
 
@@ -139,7 +140,7 @@ func (p *Provider) Provide(configurationChan chan<- dynamic.Message, pool *safe.
 
 	pool.GoCtx(func(ctxPool context.Context) {
 		operation := func() error {
-			eventsChan, err := k8sClient.WatchAll(p.Namespaces, ctxPool.Done())
+			eventsChan, err := k8sClient.WatchAll(p.Namespaces, p.DisableAPIResources, ctxPool.Done())
 			if err != nil {
 				logger.Errorf("Error watching kubernetes events: %v", err)
 				timer := time.NewTimer(1 * time.Second)
@@ -202,7 +203,7 @@ func (p *Provider) Provide(configurationChan chan<- dynamic.Message, pool *safe.
 }
 
 func (p *Provider) loadConfigurationFromCRD(ctx context.Context, client Client) *dynamic.Configuration {
-	stores, tlsConfigs := buildTLSStores(ctx, client)
+	stores, tlsConfigs := buildTLSStores(ctx, client, p)
 	if tlsConfigs == nil {
 		tlsConfigs = make(map[string]*tls.CertAndStores)
 	}
@@ -213,7 +214,7 @@ func (p *Provider) loadConfigurationFromCRD(ctx context.Context, client Client) 
 		TCP:  p.loadIngressRouteTCPConfiguration(ctx, client, tlsConfigs),
 		UDP:  p.loadIngressRouteUDPConfiguration(ctx, client),
 		TLS: &dynamic.TLSConfiguration{
-			Options: buildTLSOptions(ctx, client),
+			Options: buildTLSOptions(ctx, client, p),
 			Stores:  stores,
 		},
 	}
@@ -221,7 +222,7 @@ func (p *Provider) loadConfigurationFromCRD(ctx context.Context, client Client) 
 	// Done after because tlsConfigs is mutated by the others above.
 	conf.TLS.Certificates = getTLSConfig(tlsConfigs)
 
-	for _, middleware := range client.GetMiddlewares() {
+	for _, middleware := range client.GetMiddlewares(p.DisableAPIResources) {
 		id := provider.Normalize(makeID(middleware.Namespace, middleware.Name))
 		ctxMid := log.With(ctx, log.Str(log.MiddlewareName, id))
 
@@ -307,7 +308,7 @@ func (p *Provider) loadConfigurationFromCRD(ctx context.Context, client Client) 
 		}
 	}
 
-	for _, middlewareTCP := range client.GetMiddlewareTCPs() {
+	for _, middlewareTCP := range client.GetMiddlewareTCPs(p.DisableAPIResources) {
 		id := provider.Normalize(makeID(middlewareTCP.Namespace, middlewareTCP.Name))
 
 		conf.TCP.Middlewares[id] = &dynamic.TCPMiddleware{
@@ -324,7 +325,7 @@ func (p *Provider) loadConfigurationFromCRD(ctx context.Context, client Client) 
 		allowEmptyServices:        p.AllowEmptyServices,
 	}
 
-	for _, service := range client.GetTraefikServices() {
+	for _, service := range client.GetTraefikServices(p.DisableAPIResources) {
 		err := cb.buildTraefikService(ctx, service, conf.HTTP.Services)
 		if err != nil {
 			log.FromContext(ctx).WithField(log.ServiceName, service.Name).
@@ -333,7 +334,7 @@ func (p *Provider) loadConfigurationFromCRD(ctx context.Context, client Client) 
 		}
 	}
 
-	for _, serversTransport := range client.GetServersTransports() {
+	for _, serversTransport := range client.GetServersTransports(p.DisableAPIResources) {
 		logger := log.FromContext(ctx).WithField(log.ServersTransportName, serversTransport.Name)
 
 		var rootCAs []tls.FileOrContent
@@ -875,8 +876,8 @@ func createChainMiddleware(ctx context.Context, namespace string, chain *traefik
 	return &dynamic.Chain{Middlewares: mds}
 }
 
-func buildTLSOptions(ctx context.Context, client Client) map[string]tls.Options {
-	tlsOptionsCRDs := client.GetTLSOptions()
+func buildTLSOptions(ctx context.Context, client Client, p *Provider) map[string]tls.Options {
+	tlsOptionsCRDs := client.GetTLSOptions(p.DisableAPIResources)
 	var tlsOptions map[string]tls.Options
 
 	if len(tlsOptionsCRDs) == 0 {
@@ -949,8 +950,8 @@ func buildTLSOptions(ctx context.Context, client Client) map[string]tls.Options 
 	return tlsOptions
 }
 
-func buildTLSStores(ctx context.Context, client Client) (map[string]tls.Store, map[string]*tls.CertAndStores) {
-	tlsStoreCRD := client.GetTLSStores()
+func buildTLSStores(ctx context.Context, client Client, p *Provider) (map[string]tls.Store, map[string]*tls.CertAndStores) {
+	tlsStoreCRD := client.GetTLSStores(p.DisableAPIResources)
 	if len(tlsStoreCRD) == 0 {
 		return nil, nil
 	}
