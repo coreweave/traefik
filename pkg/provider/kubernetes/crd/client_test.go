@@ -36,7 +36,7 @@ func TestClientIgnoresHelmOwnedSecrets(t *testing.T) {
 
 	stopCh := make(chan struct{})
 
-	eventCh, err := client.WatchAll(nil, stopCh)
+	eventCh, err := client.WatchAll(nil, []string{}, stopCh)
 	require.NoError(t, err)
 
 	select {

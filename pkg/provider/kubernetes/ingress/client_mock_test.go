@@ -128,7 +128,7 @@ func (c clientMock) GetIngressClasses() ([]*netv1.IngressClass, error) {
 	return c.ingressClasses, nil
 }
 
-func (c clientMock) WatchAll(namespaces []string, stopCh <-chan struct{}) (<-chan interface{}, error) {
+func (c clientMock) WatchAll(namespaces []string, disableIngressClassLookup bool, stopCh <-chan struct{}) (<-chan interface{}, error) {
 	return c.watchChan, nil
 }
 
