@@ -379,9 +379,9 @@ func (c *clientWrapper) GetTraefikService(namespace, name string, disableAPIReso
 		}
 
 		return service, exist, err
-	} else {
-		return nil, false, nil
 	}
+
+	return nil, false, nil
 }
 
 func (c *clientWrapper) GetTraefikServices(disableAPIResources []string) []*traefikv1alpha1.TraefikService {
