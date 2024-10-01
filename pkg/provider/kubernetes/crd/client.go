@@ -31,17 +31,17 @@ const resyncPeriod = 10 * time.Minute
 // WatchAll starts the watch of the Provider resources and updates the stores.
 // The stores can then be accessed via the Get* functions.
 type Client interface {
-	WatchAll(namespaces []string, DisableAPIResources []string, stopCh <-chan struct{}) (<-chan interface{}, error)
-	GetIngressRoutes(DisableAPIResources []string) []*traefikv1alpha1.IngressRoute
-	GetIngressRouteTCPs(DisableAPIResources []string) []*traefikv1alpha1.IngressRouteTCP
-	GetIngressRouteUDPs(DisableAPIResources []string) []*traefikv1alpha1.IngressRouteUDP
-	GetMiddlewares(DisableAPIResources []string) []*traefikv1alpha1.Middleware
-	GetMiddlewareTCPs(DisableAPIResources []string) []*traefikv1alpha1.MiddlewareTCP
-	GetTraefikService(namespace, name string, DisableAPIResources []string) (*traefikv1alpha1.TraefikService, bool, error)
-	GetTraefikServices(DisableAPIResources []string) []*traefikv1alpha1.TraefikService
-	GetTLSOptions(DisableAPIResources []string) []*traefikv1alpha1.TLSOption
-	GetServersTransports(DisableAPIResources []string) []*traefikv1alpha1.ServersTransport
-	GetTLSStores(DisableAPIResources []string) []*traefikv1alpha1.TLSStore
+	WatchAll(namespaces []string, disableAPIResources []string, stopCh <-chan struct{}) (<-chan interface{}, error)
+	GetIngressRoutes(disableAPIResources []string) []*traefikv1alpha1.IngressRoute
+	GetIngressRouteTCPs(disableAPIResources []string) []*traefikv1alpha1.IngressRouteTCP
+	GetIngressRouteUDPs(disableAPIResources []string) []*traefikv1alpha1.IngressRouteUDP
+	GetMiddlewares(disableAPIResources []string) []*traefikv1alpha1.Middleware
+	GetMiddlewareTCPs(disableAPIResources []string) []*traefikv1alpha1.MiddlewareTCP
+	GetTraefikService(namespace, name string, disableAPIResources []string) (*traefikv1alpha1.TraefikService, bool, error)
+	GetTraefikServices(disableAPIResources []string) []*traefikv1alpha1.TraefikService
+	GetTLSOptions(disableAPIResources []string) []*traefikv1alpha1.TLSOption
+	GetServersTransports(disableAPIResources []string) []*traefikv1alpha1.ServersTransport
+	GetTLSStores(disableAPIResources []string) []*traefikv1alpha1.TLSStore
 	GetService(namespace, name string) (*corev1.Service, bool, error)
 	GetSecret(namespace, name string) (*corev1.Secret, bool, error)
 	GetEndpoints(namespace, name string) (*corev1.Endpoints, bool, error)
@@ -142,9 +142,9 @@ func newExternalClusterClient(endpoint, token, caFilePath string) (*clientWrappe
 	return createClientFromConfig(config)
 }
 
-func shouldProcessResource(resource string, DisableAPIResources []string) bool {
+func shouldProcessResource(resource string, disableAPIResources []string) bool {
 	// TODO: Support toLower() for resource names
-	if slices.Contains(DisableAPIResources, resource) || slices.Contains(DisableAPIResources, "all") || slices.Contains(DisableAPIResources, resource+"s") {
+	if slices.Contains(disableAPIResources, resource) || slices.Contains(disableAPIResources, "all") || slices.Contains(disableAPIResources, resource+"s") {
 		log.Debugf("Skipping processing of %s resource", resource)
 		return false
 	}
@@ -152,7 +152,7 @@ func shouldProcessResource(resource string, DisableAPIResources []string) bool {
 }
 
 // WatchAll starts namespace-specific controllers for all relevant kinds.
-func (c *clientWrapper) WatchAll(namespaces []string, DisableAPIResources []string, stopCh <-chan struct{}) (<-chan interface{}, error) {
+func (c *clientWrapper) WatchAll(namespaces []string, disableAPIResources []string, stopCh <-chan struct{}) (<-chan interface{}, error) {
 	eventCh := make(chan interface{}, 1)
 	eventHandler := &k8s.ResourceEventHandler{Ev: eventCh}
 
@@ -174,62 +174,62 @@ func (c *clientWrapper) WatchAll(namespaces []string, DisableAPIResources []stri
 	for _, ns := range namespaces {
 		factoryCrd := traefikinformers.NewSharedInformerFactoryWithOptions(c.csCrd, resyncPeriod, traefikinformers.WithNamespace(ns), traefikinformers.WithTweakListOptions(matchesLabelSelector))
 		var err error
-		if shouldProcessResource("IngressRoute", DisableAPIResources) {
+		if shouldProcessResource("IngressRoute", disableAPIResources) {
 			_, err = factoryCrd.Traefik().V1alpha1().IngressRoutes().Informer().AddEventHandler(eventHandler)
 			if err != nil {
 				return nil, err
 			}
 		}
-		if shouldProcessResource("Middleware", DisableAPIResources) {
+		if shouldProcessResource("Middleware", disableAPIResources) {
 			_, err = factoryCrd.Traefik().V1alpha1().Middlewares().Informer().AddEventHandler(eventHandler)
 			if err != nil {
 				return nil, err
 			}
 		}
-		if shouldProcessResource("MiddlewareTCP", DisableAPIResources) {
+		if shouldProcessResource("MiddlewareTCP", disableAPIResources) {
 			_, err = factoryCrd.Traefik().V1alpha1().MiddlewareTCPs().Informer().AddEventHandler(eventHandler)
 			if err != nil {
 				return nil, err
 			}
 		}
-		if shouldProcessResource("IngressRouteTCP", DisableAPIResources) {
+		if shouldProcessResource("IngressRouteTCP", disableAPIResources) {
 			_, err = factoryCrd.Traefik().V1alpha1().IngressRouteTCPs().Informer().AddEventHandler(eventHandler)
 			if err != nil {
 				return nil, err
 			}
 		}
-		if shouldProcessResource("IngressRouteUDP", DisableAPIResources) {
+		if shouldProcessResource("IngressRouteUDP", disableAPIResources) {
 			_, err = factoryCrd.Traefik().V1alpha1().IngressRouteUDPs().Informer().AddEventHandler(eventHandler)
 			if err != nil {
 				return nil, err
 			}
 		}
-		if shouldProcessResource("TLSOption", DisableAPIResources) {
+		if shouldProcessResource("TLSOption", disableAPIResources) {
 			_, err = factoryCrd.Traefik().V1alpha1().TLSOptions().Informer().AddEventHandler(eventHandler)
 			if err != nil {
 				return nil, err
 			}
 		}
-		if shouldProcessResource("ServersTransport", DisableAPIResources) {
+		if shouldProcessResource("ServersTransport", disableAPIResources) {
 			_, err = factoryCrd.Traefik().V1alpha1().ServersTransports().Informer().AddEventHandler(eventHandler)
 			if err != nil {
 				return nil, err
 			}
 		}
-		if shouldProcessResource("TLSStore", DisableAPIResources) {
+		if shouldProcessResource("TLSStore", disableAPIResources) {
 			_, err = factoryCrd.Traefik().V1alpha1().TLSStores().Informer().AddEventHandler(eventHandler)
 			if err != nil {
 				return nil, err
 			}
 		}
-		if shouldProcessResource("TraefikService", DisableAPIResources) {
+		if shouldProcessResource("TraefikService", disableAPIResources) {
 			_, err = factoryCrd.Traefik().V1alpha1().TraefikServices().Informer().AddEventHandler(eventHandler)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		err = addContainousInformers(factoryCrd, eventHandler, DisableAPIResources)
+		err = addContainousInformers(factoryCrd, eventHandler, disableAPIResources)
 		if err != nil {
 			return nil, err
 		}
@@ -284,10 +284,10 @@ func (c *clientWrapper) WatchAll(namespaces []string, DisableAPIResources []stri
 	return eventCh, nil
 }
 
-func (c *clientWrapper) GetIngressRoutes(DisableAPIResources []string) []*traefikv1alpha1.IngressRoute {
+func (c *clientWrapper) GetIngressRoutes(disableAPIResources []string) []*traefikv1alpha1.IngressRoute {
 	var result []*traefikv1alpha1.IngressRoute
 
-	if shouldProcessResource("IngressRoute", DisableAPIResources) {
+	if shouldProcessResource("IngressRoute", disableAPIResources) {
 		for ns, factory := range c.factoriesCrd {
 			ings, err := factory.Traefik().V1alpha1().IngressRoutes().Lister().List(labels.Everything())
 			if err != nil {
@@ -300,10 +300,10 @@ func (c *clientWrapper) GetIngressRoutes(DisableAPIResources []string) []*traefi
 	return c.appendContainousIngressRoutes(result)
 }
 
-func (c *clientWrapper) GetIngressRouteTCPs(DisableAPIResources []string) []*traefikv1alpha1.IngressRouteTCP {
+func (c *clientWrapper) GetIngressRouteTCPs(disableAPIResources []string) []*traefikv1alpha1.IngressRouteTCP {
 	var result []*traefikv1alpha1.IngressRouteTCP
 
-	if shouldProcessResource("IngressRouteTCP", DisableAPIResources) {
+	if shouldProcessResource("IngressRouteTCP", disableAPIResources) {
 		for ns, factory := range c.factoriesCrd {
 			ings, err := factory.Traefik().V1alpha1().IngressRouteTCPs().Lister().List(labels.Everything())
 			if err != nil {
@@ -316,10 +316,10 @@ func (c *clientWrapper) GetIngressRouteTCPs(DisableAPIResources []string) []*tra
 	return c.appendContainousIngressRouteTCPs(result)
 }
 
-func (c *clientWrapper) GetIngressRouteUDPs(DisableAPIResources []string) []*traefikv1alpha1.IngressRouteUDP {
+func (c *clientWrapper) GetIngressRouteUDPs(disableAPIResources []string) []*traefikv1alpha1.IngressRouteUDP {
 	var result []*traefikv1alpha1.IngressRouteUDP
 
-	if shouldProcessResource("IngressRouteUDP", DisableAPIResources) {
+	if shouldProcessResource("IngressRouteUDP", disableAPIResources) {
 		for ns, factory := range c.factoriesCrd {
 			ings, err := factory.Traefik().V1alpha1().IngressRouteUDPs().Lister().List(labels.Everything())
 			if err != nil {
@@ -332,10 +332,10 @@ func (c *clientWrapper) GetIngressRouteUDPs(DisableAPIResources []string) []*tra
 	return c.appendContainousIngressRouteUDPs(result)
 }
 
-func (c *clientWrapper) GetMiddlewares(DisableAPIResources []string) []*traefikv1alpha1.Middleware {
+func (c *clientWrapper) GetMiddlewares(disableAPIResources []string) []*traefikv1alpha1.Middleware {
 	var result []*traefikv1alpha1.Middleware
 
-	if shouldProcessResource("Middleware", DisableAPIResources) {
+	if shouldProcessResource("Middleware", disableAPIResources) {
 		for ns, factory := range c.factoriesCrd {
 			middlewares, err := factory.Traefik().V1alpha1().Middlewares().Lister().List(labels.Everything())
 			if err != nil {
@@ -348,10 +348,10 @@ func (c *clientWrapper) GetMiddlewares(DisableAPIResources []string) []*traefikv
 	return c.appendContainousMiddlewares(result)
 }
 
-func (c *clientWrapper) GetMiddlewareTCPs(DisableAPIResources []string) []*traefikv1alpha1.MiddlewareTCP {
+func (c *clientWrapper) GetMiddlewareTCPs(disableAPIResources []string) []*traefikv1alpha1.MiddlewareTCP {
 	var result []*traefikv1alpha1.MiddlewareTCP
 
-	if shouldProcessResource("MiddlewareTCP", DisableAPIResources) {
+	if shouldProcessResource("MiddlewareTCP", disableAPIResources) {
 		for ns, factory := range c.factoriesCrd {
 			middlewares, err := factory.Traefik().V1alpha1().MiddlewareTCPs().Lister().List(labels.Everything())
 			if err != nil {
@@ -365,12 +365,12 @@ func (c *clientWrapper) GetMiddlewareTCPs(DisableAPIResources []string) []*traef
 }
 
 // GetTraefikService returns the named service from the given namespace.
-func (c *clientWrapper) GetTraefikService(namespace, name string, DisableAPIResources []string) (*traefikv1alpha1.TraefikService, bool, error) {
+func (c *clientWrapper) GetTraefikService(namespace, name string, disableAPIResources []string) (*traefikv1alpha1.TraefikService, bool, error) {
 	if !c.isWatchedNamespace(namespace) {
 		return nil, false, fmt.Errorf("failed to get service %s/%s: namespace is not within watched namespaces", namespace, name)
 	}
 
-	if shouldProcessResource("TraefikService", DisableAPIResources) {
+	if shouldProcessResource("TraefikService", disableAPIResources) {
 		service, err := c.factoriesCrd[c.lookupNamespace(namespace)].Traefik().V1alpha1().TraefikServices().Lister().TraefikServices(namespace).Get(name)
 		exist, err := translateNotFoundError(err)
 
@@ -384,10 +384,10 @@ func (c *clientWrapper) GetTraefikService(namespace, name string, DisableAPIReso
 	}
 }
 
-func (c *clientWrapper) GetTraefikServices(DisableAPIResources []string) []*traefikv1alpha1.TraefikService {
+func (c *clientWrapper) GetTraefikServices(disableAPIResources []string) []*traefikv1alpha1.TraefikService {
 	var result []*traefikv1alpha1.TraefikService
 
-	if shouldProcessResource("TraefikService", DisableAPIResources) {
+	if shouldProcessResource("TraefikService", disableAPIResources) {
 		for ns, factory := range c.factoriesCrd {
 			traefikServices, err := factory.Traefik().V1alpha1().TraefikServices().Lister().List(labels.Everything())
 			if err != nil {
@@ -401,10 +401,10 @@ func (c *clientWrapper) GetTraefikServices(DisableAPIResources []string) []*trae
 }
 
 // GetServersTransports returns all ServersTransport.
-func (c *clientWrapper) GetServersTransports(DisableAPIResources []string) []*traefikv1alpha1.ServersTransport {
+func (c *clientWrapper) GetServersTransports(disableAPIResources []string) []*traefikv1alpha1.ServersTransport {
 	var result []*traefikv1alpha1.ServersTransport
 
-	if shouldProcessResource("ServersTransport", DisableAPIResources) {
+	if shouldProcessResource("ServersTransport", disableAPIResources) {
 		for ns, factory := range c.factoriesCrd {
 			serversTransports, err := factory.Traefik().V1alpha1().ServersTransports().Lister().List(labels.Everything())
 			if err != nil {
@@ -418,10 +418,10 @@ func (c *clientWrapper) GetServersTransports(DisableAPIResources []string) []*tr
 }
 
 // GetTLSOptions returns all TLS options.
-func (c *clientWrapper) GetTLSOptions(DisableAPIResources []string) []*traefikv1alpha1.TLSOption {
+func (c *clientWrapper) GetTLSOptions(disableAPIResources []string) []*traefikv1alpha1.TLSOption {
 	var result []*traefikv1alpha1.TLSOption
 
-	if shouldProcessResource("TLSOption", DisableAPIResources) {
+	if shouldProcessResource("TLSOption", disableAPIResources) {
 		for ns, factory := range c.factoriesCrd {
 			options, err := factory.Traefik().V1alpha1().TLSOptions().Lister().List(labels.Everything())
 			if err != nil {
@@ -435,10 +435,10 @@ func (c *clientWrapper) GetTLSOptions(DisableAPIResources []string) []*traefikv1
 }
 
 // GetTLSStores returns all TLS stores.
-func (c *clientWrapper) GetTLSStores(DisableAPIResources []string) []*traefikv1alpha1.TLSStore {
+func (c *clientWrapper) GetTLSStores(disableAPIResources []string) []*traefikv1alpha1.TLSStore {
 	var result []*traefikv1alpha1.TLSStore
 
-	if shouldProcessResource("TLSStore", DisableAPIResources) {
+	if shouldProcessResource("TLSStore", disableAPIResources) {
 		for ns, factory := range c.factoriesCrd {
 			stores, err := factory.Traefik().V1alpha1().TLSStores().Lister().List(labels.Everything())
 			if err != nil {
