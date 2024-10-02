@@ -4,10 +4,6 @@
   on:
     workflow_dispatch:
       inputs:
-        version:
-          description: Version to tag the container with
-          required: true
-          type: string
         publish:
           description: Publish the container to the registry
           required: true
@@ -48,8 +44,14 @@
             make build-webui-image
             make build-image-dirty
 
+        - name: Set image tag
+          run: |
+            git remote add upstream https://github.com/traefik/traefik.git
+            git fetch --tags upstream
+            echo "VERSION=$(git describe --tags --match 'v2.*' --exclude '*-' --abbrev=0)" >> $GITHUB_ENV
+            
         - name: Push image
           if: ${{inputs.publish}}
           run: |
-            docker tag traefik/traefik ghcr.io/${{ github.repository }}:${{ inputs.version }}-${GITHUB_SHA::7}
-            docker push ghcr.io/${{ github.repository }}:${{ inputs.version }}-${GITHUB_SHA::7}
+            docker tag traefik/traefik ghcr.io/${{ github.repository }}:${VERSION}-${GITHUB_SHA::7}
+            docker push ghcr.io/${{ github.repository }}:${VERSION}-${GITHUB_SHA::7}
