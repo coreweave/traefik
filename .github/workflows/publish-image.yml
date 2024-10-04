@@ -41,7 +41,6 @@
           env:
             DOCKER_BUILDX_ARGS: "--load --cache-from type=gha --cache-to type=gha,mode=max"
           run: |
-            make build-webui-image
             make build-image-dirty
 
         - name: Set image tag
@@ -49,7 +48,7 @@
             git remote add upstream https://github.com/traefik/traefik.git
             git fetch --tags upstream
             echo "VERSION=$(git describe --tags --match 'v2.*' --exclude '*-' --abbrev=0)" >> $GITHUB_ENV
-            
+
         - name: Push image
           if: ${{inputs.publish}}
           run: |
