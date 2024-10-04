@@ -19,7 +19,7 @@ func (p *Provider) loadIngressRouteUDPConfiguration(ctx context.Context, client 
 		Services: map[string]*dynamic.UDPService{},
 	}
 
-	for _, ingressRouteUDP := range client.GetIngressRouteUDPs() {
+	for _, ingressRouteUDP := range client.GetIngressRouteUDPs(p.DisableAPIResources) {
 		logger := log.FromContext(log.With(ctx, log.Str("ingress", ingressRouteUDP.Name), log.Str("namespace", ingressRouteUDP.Namespace)))
 
 		if !shouldProcessIngress(p.IngressClass, ingressRouteUDP.Annotations[annotationKubernetesIngressClass]) {

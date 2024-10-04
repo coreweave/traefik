@@ -320,49 +320,69 @@ func (c *clientWrapper) getContainousTraefikService(namespace, name string) (*tr
 	return toVersion.(*traefikv1alpha1.TraefikService), exist, err
 }
 
-func addContainousInformers(factoryCrd traefikinformers.SharedInformerFactory, eventHandler *k8s.ResourceEventHandler) error {
-	_, err := factoryCrd.TraefikContainous().V1alpha1().IngressRoutes().Informer().AddEventHandler(eventHandler)
-	if err != nil {
-		return err
+func addContainousInformers(factoryCrd traefikinformers.SharedInformerFactory, eventHandler *k8s.ResourceEventHandler, disableAPIResources []string) error {
+	var err error
+	if shouldProcessResource("IngressRoute", disableAPIResources) {
+		_, err = factoryCrd.TraefikContainous().V1alpha1().IngressRoutes().Informer().AddEventHandler(eventHandler)
+		if err != nil {
+			return err
+		}
 	}
 
-	_, err = factoryCrd.TraefikContainous().V1alpha1().Middlewares().Informer().AddEventHandler(eventHandler)
-	if err != nil {
-		return err
+	if shouldProcessResource("Middleware", disableAPIResources) {
+		_, err = factoryCrd.TraefikContainous().V1alpha1().Middlewares().Informer().AddEventHandler(eventHandler)
+		if err != nil {
+			return err
+		}
 	}
 
-	_, err = factoryCrd.TraefikContainous().V1alpha1().MiddlewareTCPs().Informer().AddEventHandler(eventHandler)
-	if err != nil {
-		return err
+	if shouldProcessResource("MiddlewareTCP", disableAPIResources) {
+		_, err = factoryCrd.TraefikContainous().V1alpha1().MiddlewareTCPs().Informer().AddEventHandler(eventHandler)
+		if err != nil {
+			return err
+		}
 	}
 
-	_, err = factoryCrd.TraefikContainous().V1alpha1().IngressRouteTCPs().Informer().AddEventHandler(eventHandler)
-	if err != nil {
-		return err
-	}
-	_, err = factoryCrd.TraefikContainous().V1alpha1().IngressRouteUDPs().Informer().AddEventHandler(eventHandler)
-	if err != nil {
-		return err
+	if shouldProcessResource("IngressRouteTCP", disableAPIResources) {
+		_, err = factoryCrd.TraefikContainous().V1alpha1().IngressRouteTCPs().Informer().AddEventHandler(eventHandler)
+		if err != nil {
+			return err
+		}
 	}
 
-	_, err = factoryCrd.TraefikContainous().V1alpha1().TLSOptions().Informer().AddEventHandler(eventHandler)
-	if err != nil {
-		return err
+	if shouldProcessResource("IngressRouteUDP", disableAPIResources) {
+		_, err = factoryCrd.TraefikContainous().V1alpha1().IngressRouteUDPs().Informer().AddEventHandler(eventHandler)
+		if err != nil {
+			return err
+		}
 	}
 
-	_, err = factoryCrd.TraefikContainous().V1alpha1().ServersTransports().Informer().AddEventHandler(eventHandler)
-	if err != nil {
-		return err
+	if shouldProcessResource("TLSOption", disableAPIResources) {
+		_, err = factoryCrd.TraefikContainous().V1alpha1().TLSOptions().Informer().AddEventHandler(eventHandler)
+		if err != nil {
+			return err
+		}
 	}
 
-	_, err = factoryCrd.TraefikContainous().V1alpha1().TLSStores().Informer().AddEventHandler(eventHandler)
-	if err != nil {
-		return err
+	if shouldProcessResource("ServersTransport", disableAPIResources) {
+		_, err = factoryCrd.TraefikContainous().V1alpha1().ServersTransports().Informer().AddEventHandler(eventHandler)
+		if err != nil {
+			return err
+		}
 	}
 
-	_, err = factoryCrd.TraefikContainous().V1alpha1().TraefikServices().Informer().AddEventHandler(eventHandler)
-	if err != nil {
-		return err
+	if shouldProcessResource("TLSStore", disableAPIResources) {
+		_, err = factoryCrd.TraefikContainous().V1alpha1().TLSStores().Informer().AddEventHandler(eventHandler)
+		if err != nil {
+			return err
+		}
+	}
+
+	if shouldProcessResource("TraefikService", disableAPIResources) {
+		_, err = factoryCrd.TraefikContainous().V1alpha1().TraefikServices().Informer().AddEventHandler(eventHandler)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

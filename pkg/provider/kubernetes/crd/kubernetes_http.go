@@ -31,7 +31,7 @@ func (p *Provider) loadIngressRouteConfiguration(ctx context.Context, client Cli
 		ServersTransports: map[string]*dynamic.ServersTransport{},
 	}
 
-	for _, ingressRoute := range client.GetIngressRoutes() {
+	for _, ingressRoute := range client.GetIngressRoutes(p.DisableAPIResources) {
 		ctxRt := log.With(ctx, log.Str("ingress", ingressRoute.Name), log.Str("namespace", ingressRoute.Namespace))
 		logger := log.FromContext(ctxRt)
 

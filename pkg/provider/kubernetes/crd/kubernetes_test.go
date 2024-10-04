@@ -6089,7 +6089,7 @@ func TestCrossNamespace(t *testing.T) {
 
 			stopCh := make(chan struct{})
 
-			eventCh, err := client.WatchAll([]string{"default", "cross-ns"}, stopCh)
+			eventCh, err := client.WatchAll([]string{"default", "cross-ns"}, []string{}, stopCh)
 			require.NoError(t, err)
 
 			if k8sObjects != nil || crdObjects != nil {
@@ -6378,7 +6378,7 @@ func TestExternalNameService(t *testing.T) {
 
 			stopCh := make(chan struct{})
 
-			eventCh, err := client.WatchAll([]string{"default", "cross-ns"}, stopCh)
+			eventCh, err := client.WatchAll([]string{"default", "cross-ns"}, []string{}, stopCh)
 			require.NoError(t, err)
 
 			if k8sObjects != nil || crdObjects != nil {
@@ -6584,7 +6584,7 @@ func TestNativeLB(t *testing.T) {
 
 			stopCh := make(chan struct{})
 
-			eventCh, err := client.WatchAll([]string{"default", "cross-ns"}, stopCh)
+			eventCh, err := client.WatchAll([]string{"default", "cross-ns"}, []string{}, stopCh)
 			require.NoError(t, err)
 
 			if k8sObjects != nil || crdObjects != nil {
@@ -6623,7 +6623,7 @@ func TestCreateBasicAuthCredentials(t *testing.T) {
 
 	stopCh := make(chan struct{})
 
-	eventCh, err := client.WatchAll([]string{"default"}, stopCh)
+	eventCh, err := client.WatchAll([]string{"default"}, []string{}, stopCh)
 	require.NoError(t, err)
 
 	if k8sObjects != nil {

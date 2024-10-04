@@ -88,27 +88,27 @@ func newClientMock(paths ...string) clientMock {
 	return c
 }
 
-func (c clientMock) GetIngressRoutes() []*traefikv1alpha1.IngressRoute {
+func (c clientMock) GetIngressRoutes(disableAPIResources []string) []*traefikv1alpha1.IngressRoute {
 	return c.ingressRoutes
 }
 
-func (c clientMock) GetIngressRouteTCPs() []*traefikv1alpha1.IngressRouteTCP {
+func (c clientMock) GetIngressRouteTCPs(disableAPIResources []string) []*traefikv1alpha1.IngressRouteTCP {
 	return c.ingressRouteTCPs
 }
 
-func (c clientMock) GetIngressRouteUDPs() []*traefikv1alpha1.IngressRouteUDP {
+func (c clientMock) GetIngressRouteUDPs(disableAPIResources []string) []*traefikv1alpha1.IngressRouteUDP {
 	return c.ingressRouteUDPs
 }
 
-func (c clientMock) GetMiddlewares() []*traefikv1alpha1.Middleware {
+func (c clientMock) GetMiddlewares(disableAPIResources []string) []*traefikv1alpha1.Middleware {
 	return c.middlewares
 }
 
-func (c clientMock) GetMiddlewareTCPs() []*traefikv1alpha1.MiddlewareTCP {
+func (c clientMock) GetMiddlewareTCPs(disableAPIResources []string) []*traefikv1alpha1.MiddlewareTCP {
 	return c.middlewareTCPs
 }
 
-func (c clientMock) GetTraefikService(namespace, name string) (*traefikv1alpha1.TraefikService, bool, error) {
+func (c clientMock) GetTraefikService(namespace, name string, disableAPIResources []string) (*traefikv1alpha1.TraefikService, bool, error) {
 	for _, svc := range c.traefikServices {
 		if svc.Namespace == namespace && svc.Name == name {
 			return svc, true, nil
@@ -118,19 +118,19 @@ func (c clientMock) GetTraefikService(namespace, name string) (*traefikv1alpha1.
 	return nil, false, nil
 }
 
-func (c clientMock) GetTraefikServices() []*traefikv1alpha1.TraefikService {
+func (c clientMock) GetTraefikServices(disableAPIResources []string) []*traefikv1alpha1.TraefikService {
 	return c.traefikServices
 }
 
-func (c clientMock) GetTLSOptions() []*traefikv1alpha1.TLSOption {
+func (c clientMock) GetTLSOptions(disableAPIResources []string) []*traefikv1alpha1.TLSOption {
 	return c.tlsOptions
 }
 
-func (c clientMock) GetTLSStores() []*traefikv1alpha1.TLSStore {
+func (c clientMock) GetTLSStores(disableAPIResources []string) []*traefikv1alpha1.TLSStore {
 	return c.tlsStores
 }
 
-func (c clientMock) GetServersTransports() []*traefikv1alpha1.ServersTransport {
+func (c clientMock) GetServersTransports(disableAPIResources []string) []*traefikv1alpha1.ServersTransport {
 	return c.serversTransport
 }
 
@@ -184,6 +184,6 @@ func (c clientMock) GetSecret(namespace, name string) (*corev1.Secret, bool, err
 	return nil, false, nil
 }
 
-func (c clientMock) WatchAll(namespaces []string, stopCh <-chan struct{}) (<-chan interface{}, error) {
+func (c clientMock) WatchAll(namespaces []string, disableAPIResources []string, stopCh <-chan struct{}) (<-chan interface{}, error) {
 	return c.watchChan, nil
 }
