@@ -254,8 +254,7 @@ entryPoints:
 
 ```toml tab="File (TOML)"
 [entryPoints.foo]
-  [entryPoints.foo.allowACMEByPass]
-    allowACMEByPass = true
+  allowACMEByPass = true
 ```
 
 ```bash tab="CLI"
@@ -472,7 +471,7 @@ Setting them has no effect for UDP entryPoints.
     If zero, no timeout exists.  
     Can be provided in a format supported by [time.ParseDuration](https://golang.org/pkg/time/#ParseDuration) or as raw values (digits).
     If no units are provided, the value is parsed assuming seconds.
-    We strongly suggest to adapt this value accordingly to the your needs.
+    We strongly suggest adapting this value accordingly to your needs.
 
     ```yaml tab="File (YAML)"
     ## Static configuration
