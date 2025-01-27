@@ -141,6 +141,9 @@ linters-settings:
       - name: unreachable-code
       - name: redefines-builtin-id
   gomoddirectives:
+    tool-forbidden: true
+    toolchain-pattern: 'go1\.\d+\.\d+$'
+    go-version-pattern: '^1\.\d+(\.0)?$'
     replace-allow-list:
       - github.com/abbot/go-http-auth
       - github.com/gorilla/mux
@@ -159,8 +162,6 @@ linters-settings:
 linters:
   enable-all: true
   disable:
-    - execinquery # deprecated
-    - gomnd # deprecated
     - sqlclosecheck # not relevant (SQL)
     - rowserrcheck # not relevant (SQL)
     - cyclop # duplicate of gocyclo
@@ -273,3 +274,14 @@ issues:
     - path: pkg/provider/acme/local_store.go
       linters:
         - musttag
+    - path: pkg/tls/certificate.go
+      text: 'the methods of "Certificates" use pointer receiver and non-pointer receiver.'
+      linters:
+        - recvcheck
+
+output:
+  show-stats: true
+  sort-results: true
+  sort-order:
+    - linter
+    - file
